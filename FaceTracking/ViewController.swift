@@ -9,35 +9,6 @@
 import UIKit
 import AVFoundation
 
-class DetailsView: UIView {
-
-    lazy var detailsLabel: UILabel = {
-        let detailsLabel = UILabel(frame: CGRect(x: 0, y: 0, width: self.frame.size.width, height: self.frame.size.height))
-        detailsLabel.numberOfLines = 0
-        detailsLabel.textColor = .white
-        detailsLabel.font = UIFont.systemFont(ofSize: 18.0)
-        detailsLabel.textAlignment = .left
-       
-        return detailsLabel
-    }()
-    
-    func setup() {
-        layer.borderColor = UIColor.red.withAlphaComponent(0.7).cgColor
-        layer.borderWidth = 5.0
-  
-        addSubview(detailsLabel)
-    }
-    
-   override var frame: CGRect {
-        didSet(newFrame) {
-            var detailsFrame = detailsLabel.frame
-            detailsFrame = CGRect(x: 0, y: newFrame.size.height, width: newFrame.size.width * 2.0, height: newFrame.size.height / 2.0)
-            detailsLabel.frame = detailsFrame
-        }
-    }
-}
-
-
 class ViewController: UIViewController {
 
     var session: AVCaptureSession?
@@ -47,24 +18,21 @@ class ViewController: UIViewController {
     let detailsView: DetailsView = {
         let detailsView = DetailsView()
         detailsView.setup()
-        
         return detailsView
     }()
     
     lazy var previewLayer: AVCaptureVideoPreviewLayer? = {
         var previewLay = AVCaptureVideoPreviewLayer(session: self.session!)
         previewLay?.videoGravity = AVLayerVideoGravityResizeAspectFill
-        
         return previewLay
     }()
     
     lazy var frontCamera: AVCaptureDevice? = {
         guard let devices = AVCaptureDevice.devices(withMediaType: AVMediaTypeVideo) as? [AVCaptureDevice] else { return nil }
-        
         return devices.filter { $0.position == .front }.first
     }()
     
-    let faceDetector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: [CIDetectorAccuracy : CIDetectorAccuracyLow])
+    let faceDetector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: [CIDetectorAccuracy : CIDetectorAccuracyHigh])
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -85,10 +53,8 @@ class ViewController: UIViewController {
         sessionPrepare()
         session?.startRunning()
     }
-}
 
-extension ViewController {
-
+    //Prepare camera session
     func sessionPrepare() {
         session = AVCaptureSession()
        
@@ -122,16 +88,28 @@ extension ViewController {
             print("error with creating AVCaptureDeviceInput")
         }
     }
+    
+    func update(with faceRect: CGRect, text: String) {
+        DispatchQueue.main.async {
+            UIView.animate(withDuration: 0.2) {
+                self.detailsView.detailsLabel.text = text
+                self.detailsView.alpha = 1.0
+                self.detailsView.frame = faceRect
+            }
+        }
+    }
 }
 
 extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
+        //print("============")
+        //print("output captured")
         let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
         let attachments = CMCopyDictionaryOfAttachments(kCFAllocatorDefault, sampleBuffer, kCMAttachmentMode_ShouldPropagate)
         let ciImage = CIImage(cvImageBuffer: pixelBuffer!, options: attachments as! [String : Any]?)
         let options: [String : Any] = [CIDetectorImageOrientation: exifOrientation(orientation: UIDevice.current.orientation),
-                                       CIDetectorSmile: true,
-                                       CIDetectorEyeBlink: true]
+                                       CIDetectorEyeBlink: true,
+                                       CIDetectorReturnSubFeatures: true]
         let allFeatures = faceDetector?.features(in: ciImage, options: options)
     
         let formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer)
@@ -142,15 +120,17 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
         for feature in features {
             if let faceFeature = feature as? CIFaceFeature {
                 let faceRect = calculateFaceRect(facePosition: faceFeature.mouthPosition, faceBounds: faceFeature.bounds, clearAperture: cleanAperture)
-                let featureDetails = ["has smile: \(faceFeature.hasSmile)",
-                    "has closed left eye: \(faceFeature.leftEyeClosed)",
-                    "has closed right eye: \(faceFeature.rightEyeClosed)"]
+                let featureDetails = [
+                    "has mouth position: \(faceFeature.hasMouthPosition)",
+                    "Face angled at : \(faceFeature.faceAngle)"
+                ]
                 
                 update(with: faceRect, text: featureDetails.joined(separator: "\n"))
             }
         }
         
         if features.count == 0 {
+            print("features count became 0")
             DispatchQueue.main.async {
                 self.detailsView.alpha = 0.0
             }
@@ -223,17 +203,5 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
         let frame = CGRect(x: parentFrameSize.width - faceRect.origin.x - faceRect.size.width / 2.0 - previewBox.origin.x / 2.0, y: faceRect.origin.y, width: faceRect.width, height: faceRect.height)
         
         return frame
-    }
-}
-
-extension ViewController {
-    func update(with faceRect: CGRect, text: String) {
-        DispatchQueue.main.async {
-            UIView.animate(withDuration: 0.2) {
-                self.detailsView.detailsLabel.text = text
-                self.detailsView.alpha = 1.0
-                self.detailsView.frame = faceRect
-            }
-        }
     }
 }
