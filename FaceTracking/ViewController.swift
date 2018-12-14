@@ -2,8 +2,7 @@
 //  ViewController.swift
 //  AutoCamera
 //
-//  Created by Pawel Chmiel on 26.09.2016.
-//  Copyright © 2016 Pawel Chmiel. All rights reserved.
+//  Created by Nino
 //
 
 import UIKit
@@ -12,15 +11,8 @@ import AVFoundation
 class ViewController: UIViewController {
 
     var session: AVCaptureSession?
-    var stillOutput = AVCaptureStillImageOutput()
     var borderLayer: CAShapeLayer?
    
-    let detailsView: DetailsView = {
-        let detailsView = DetailsView()
-        detailsView.setup()
-        return detailsView
-    }()
-    
     lazy var previewLayer: AVCaptureVideoPreviewLayer? = {
         var previewLay = AVCaptureVideoPreviewLayer(session: self.session!)
         previewLay?.videoGravity = AVLayerVideoGravityResizeAspectFill
@@ -44,8 +36,6 @@ class ViewController: UIViewController {
         guard let previewLayer = previewLayer else { return }
         
         view.layer.addSublayer(previewLayer)
-        view.addSubview(detailsView)
-        view.bringSubview(toFront: detailsView)
     }
     
     override func viewDidLoad() {
@@ -72,7 +62,6 @@ class ViewController: UIViewController {
             
             let output = AVCaptureVideoDataOutput()
             output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String : NSNumber(value: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)]
-            
             output.alwaysDiscardsLateVideoFrames = true
         
             if session.canAddOutput(output) {
@@ -83,27 +72,14 @@ class ViewController: UIViewController {
             
             let queue = DispatchQueue(label: "output.queue")
             output.setSampleBufferDelegate(self, queue: queue)
-            
         } catch {
             print("error with creating AVCaptureDeviceInput")
         }
-    }
-    
-    func update(with faceRect: CGRect, text: String) {
-        DispatchQueue.main.async {
-            UIView.animate(withDuration: 0.2) {
-                self.detailsView.detailsLabel.text = text
-                self.detailsView.alpha = 1.0
-                self.detailsView.frame = faceRect
-            }
-        }
-    }
+    }        
 }
 
 extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-        //print("============")
-        //print("output captured")
         let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
         let attachments = CMCopyDictionaryOfAttachments(kCFAllocatorDefault, sampleBuffer, kCMAttachmentMode_ShouldPropagate)
         let ciImage = CIImage(cvImageBuffer: pixelBuffer!, options: attachments as! [String : Any]?)
@@ -111,31 +87,33 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
                                        CIDetectorEyeBlink: true,
                                        CIDetectorReturnSubFeatures: true]
         let allFeatures = faceDetector?.features(in: ciImage, options: options)
-    
-        let formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer)
-        let cleanAperture = CMVideoFormatDescriptionGetCleanAperture(formatDescription!, false)
-        
         guard let features = allFeatures else { return }
         
         for feature in features {
             if let faceFeature = feature as? CIFaceFeature {
-                let faceRect = calculateFaceRect(facePosition: faceFeature.mouthPosition, faceBounds: faceFeature.bounds, clearAperture: cleanAperture)
-                let featureDetails = [
-                    "has mouth position: \(faceFeature.hasMouthPosition)",
-                    "Face angled at : \(faceFeature.faceAngle)"
-                ]
+                //let featureDetails = ["Has mouth position: \(faceFeature.hasMouthPosition)"]
+                //print("featureDetails.joined(separator: "\n")")
+                if(faceFeature.hasLeftEyePosition && faceFeature.hasRightEyePosition) {
+                    let leftEyeCenter = faceFeature.leftEyePosition
+                    let rightEyeCenter = faceFeature.rightEyePosition
+                    
+                    let simpleDistance = rightEyeCenter.x - leftEyeCenter.x
+                    //This finds the distance simply by comparing the x coordinates of the two pupils
+                    
+                    //print("Simple distance = \(simpleDistance)")
+                    let complexDistance = fabsf(sqrtf(powf(Float(leftEyeCenter.y - rightEyeCenter.y), 2) + powf(Float(rightEyeCenter.x - leftEyeCenter.x), 2)))
+                    //This will return the diagonal distance between the two pupils allowing for greater distance if the pupils are not perfectly level.
+                }
                 
-                update(with: faceRect, text: featureDetails.joined(separator: "\n"))
+                if (!faceFeature.hasMouthPosition || abs(faceFeature.faceAngle) > 12) {
+                    print("Please face camera without tilting your head")
+                }
             }
         }
         
         if features.count == 0 {
-            print("features count became 0")
-            DispatchQueue.main.async {
-                self.detailsView.alpha = 0.0
-            }
+            print("Place your face in the frame")
         }
-        
     }
     
     func exifOrientation(orientation: UIDeviceOrientation) -> Int {
@@ -149,59 +127,5 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
         default:
             return 6
         }
-    }
-    
-    func videoBox(frameSize: CGSize, apertureSize: CGSize) -> CGRect {
-        let apertureRatio = apertureSize.height / apertureSize.width
-        let viewRatio = frameSize.width / frameSize.height
-        
-        var size = CGSize.zero
-     
-        if (viewRatio > apertureRatio) {
-            size.width = frameSize.width
-            size.height = apertureSize.width * (frameSize.width / apertureSize.height)
-        } else {
-            size.width = apertureSize.height * (frameSize.height / apertureSize.width)
-            size.height = frameSize.height
-        }
-        
-        var videoBox = CGRect(origin: .zero, size: size)
-       
-        if (size.width < frameSize.width) {
-            videoBox.origin.x = (frameSize.width - size.width) / 2.0
-        } else {
-            videoBox.origin.x = (size.width - frameSize.width) / 2.0
-        }
-        
-        if (size.height < frameSize.height) {
-            videoBox.origin.y = (frameSize.height - size.height) / 2.0
-        } else {
-            videoBox.origin.y = (size.height - frameSize.height) / 2.0
-        }
-       
-        return videoBox
-    }
-
-    func calculateFaceRect(facePosition: CGPoint, faceBounds: CGRect, clearAperture: CGRect) -> CGRect {
-        let parentFrameSize = previewLayer!.frame.size
-        let previewBox = videoBox(frameSize: parentFrameSize, apertureSize: clearAperture.size)
-        
-        var faceRect = faceBounds
-        
-        swap(&faceRect.size.width, &faceRect.size.height)
-        swap(&faceRect.origin.x, &faceRect.origin.y)
-
-        let widthScaleBy = previewBox.size.width / clearAperture.size.height
-        let heightScaleBy = previewBox.size.height / clearAperture.size.width
-        
-        faceRect.size.width *= widthScaleBy
-        faceRect.size.height *= heightScaleBy
-        faceRect.origin.x *= widthScaleBy
-        faceRect.origin.y *= heightScaleBy
-        
-        faceRect = faceRect.offsetBy(dx: 0.0, dy: previewBox.origin.y)
-        let frame = CGRect(x: parentFrameSize.width - faceRect.origin.x - faceRect.size.width / 2.0 - previewBox.origin.x / 2.0, y: faceRect.origin.y, width: faceRect.width, height: faceRect.height)
-        
-        return frame
     }
 }
