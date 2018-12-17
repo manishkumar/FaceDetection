@@ -26,7 +26,6 @@ protocol FaceDetecting : class {
     func stop()
 }
 
-
 final class FaceDetector: NSObject, FaceDetecting {
     
     fileprivate struct Constants {
@@ -34,12 +33,12 @@ final class FaceDetector: NSObject, FaceDetecting {
         static let outputQueue = "output.queue"
     }
     
-    let faceDetector = CIDetector(ofType: CIDetectorTypeFace,
-                                  context: nil,
-                                  options: [CIDetectorAccuracy : CIDetectorAccuracyHigh])
     weak var delegate: FaceDetectionDelegate?
     let session = AVCaptureSession()
     let captureDevice: AVCaptureDevice
+    let detector = CIDetector(ofType: CIDetectorTypeFace,
+                              context: nil,
+                              options: [CIDetectorAccuracy : CIDetectorAccuracyHigh])
     let queue = DispatchQueue(label: Constants.outputQueue)
     
     init(captureDevice: AVCaptureDevice) {
@@ -88,11 +87,11 @@ final class FaceDetector: NSObject, FaceDetecting {
 }
 
 extension FaceDetector: AVCaptureVideoDataOutputSampleBufferDelegate {
-    func captureOutput(_ output: AVCaptureOutput!,
-                       didDrop sampleBuffer: CMSampleBuffer!,
+    
+
+    func captureOutput(_ captureOutput: AVCaptureOutput!,
+                       didOutputSampleBuffer sampleBuffer: CMSampleBuffer!,
                        from connection: AVCaptureConnection!) {
-        print("captureOutput")
-        
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         guard let attachments = CMCopyDictionaryOfAttachments(kCFAllocatorDefault,
                                                               sampleBuffer,
@@ -102,8 +101,7 @@ extension FaceDetector: AVCaptureVideoDataOutputSampleBufferDelegate {
         let options: [String : Any] = [CIDetectorImageOrientation: exifOrientation(orientation: UIDevice.current.orientation),
                                        CIDetectorEyeBlink: true,
                                        CIDetectorReturnSubFeatures: true]
-        let allFeatures = faceDetector?.features(in: ciImage, options: options)
-        guard let features = allFeatures else { return }
+        guard let features = detector?.features(in: ciImage, options: options) else { return }
         
         if !(features.count > 0) {
             delegate?.onError(error: .FaceOutOfFrame)
