@@ -20,7 +20,6 @@ struct Platform {
 class ViewController: UIViewController {
 //class ViewController3: UIViewController {
     
-    var session: AVCaptureSession?
     fileprivate let captureSession = AVCaptureSession()
     fileprivate let movieOutput = AVCaptureMovieFileOutput()
     fileprivate var previewLayer: AVCaptureVideoPreviewLayer!
@@ -28,14 +27,12 @@ class ViewController: UIViewController {
     fileprivate var outputURL: URL!
     fileprivate let avPlayer = AVPlayer()
     fileprivate var avPlayerLayer: AVPlayerLayer!
-    
+    fileprivate var faceDetector: FaceDetecting?
     
     lazy var frontCamera: AVCaptureDevice? = {
         guard let devices = AVCaptureDevice.devices(withMediaType: AVMediaTypeVideo) as? [AVCaptureDevice] else { return nil }
         return devices.filter { $0.position == .front }.first
     }()
-    
-    let faceDetector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: [CIDetectorAccuracy : CIDetectorAccuracyHigh])
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -46,11 +43,14 @@ class ViewController: UIViewController {
         
         if !Platform.isSimulator {
             if setupSession() {
-                setupSessions2()
                 setupPreview()
                 startSession()
-                session?.startRunning()
                 startRecording()
+                
+                
+                guard let frontCamera = frontCamera else { return }
+                faceDetector = FaceDetector(captureDevice: frontCamera)
+                faceDetector?.delegate = self
                 
                 Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(timerAction), userInfo: nil, repeats: false)
             }
@@ -106,38 +106,6 @@ class ViewController: UIViewController {
         }
         
         return true
-    }
-    
-    func setupSessions2() {
-        session = AVCaptureSession()
-        
-        guard let session = session, let captureDevice = frontCamera else { return }
-        
-        session.sessionPreset = AVCaptureSessionPresetHigh
-        
-        do {
-            let deviceInput = try AVCaptureDeviceInput(device: captureDevice)
-            session.beginConfiguration()
-            
-            if session.canAddInput(deviceInput) {
-                session.addInput(deviceInput)
-            }
-            
-            let output = AVCaptureVideoDataOutput()
-            output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String : NSNumber(value: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)]
-            output.alwaysDiscardsLateVideoFrames = true
-            
-            if session.canAddOutput(output) {
-                session.addOutput(output)
-            }
-            
-            session.commitConfiguration()
-            
-            let queue = DispatchQueue(label: "output.queue")
-            output.setSampleBufferDelegate(self, queue: queue)
-        } catch {
-            print("error with creating AVCaptureDeviceInput")
-        }
     }
     
     func startSession() {
@@ -247,44 +215,8 @@ extension ViewController: AVCaptureFileOutputRecordingDelegate {
 }
 
 
-extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
-//extension ViewController3: AVCaptureVideoDataOutputSampleBufferDelegate {
-    func captureOutput(_ captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, from connection: AVCaptureConnection!) {
-        let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
-        let attachments = CMCopyDictionaryOfAttachments(kCFAllocatorDefault, sampleBuffer, kCMAttachmentMode_ShouldPropagate)
-        let ciImage = CIImage(cvImageBuffer: pixelBuffer!, options: attachments as! [String : Any]?)
-        let options: [String : Any] = [CIDetectorImageOrientation: exifOrientation(orientation: UIDevice.current.orientation),
-                                       CIDetectorEyeBlink: true,
-                                       CIDetectorReturnSubFeatures: true]
-        let allFeatures = faceDetector?.features(in: ciImage, options: options)
-        guard let features = allFeatures else { return }
+extension ViewController: FaceDetectionDelegate {
+    func onError(error: FaceDetectionError) {
         
-        if !(features.count > 0) {
-            print("Place your face inside the frame")
-            return
-        }
-        
-        for feature in features {
-            if let faceFeature = feature as? CIFaceFeature {
-                if !faceFeature.hasMouthPosition {
-                    print("Please face camera")
-                } else if abs(faceFeature.faceAngle) > 12 {
-                    print("Please don't tilt your head")
-                }
-            }
-        }
-    }
-    
-    func exifOrientation(orientation: UIDeviceOrientation) -> Int {
-        switch orientation {
-        case .portraitUpsideDown:
-            return 8
-        case .landscapeLeft:
-            return 3
-        case .landscapeRight:
-            return 1
-        default:
-            return 6
-        }
     }
 }
