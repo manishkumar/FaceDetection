@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		13D480EE21C3842F00211ED7 /* FaceDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D480ED21C3842F00211ED7 /* FaceDetector.swift */; };
-		13E4A9D721C535FA00737965 /* ViewController2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E4A9D621C535FA00737965 /* ViewController2.swift */; };
 		E5AB7BD21D9E92DA0079BE5B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AB7BD11D9E92DA0079BE5B /* AppDelegate.swift */; };
 		E5AB7BD41D9E92DA0079BE5B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AB7BD31D9E92DA0079BE5B /* ViewController.swift */; };
 		E5AB7BD71D9E92DA0079BE5B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E5AB7BD51D9E92DA0079BE5B /* Main.storyboard */; };
@@ -19,7 +18,6 @@
 
 /* Begin PBXFileReference section */
 		13D480ED21C3842F00211ED7 /* FaceDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceDetector.swift; sourceTree = "<group>"; };
-		13E4A9D621C535FA00737965 /* ViewController2.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewController2.swift; sourceTree = "<group>"; };
 		E5AB7BCE1D9E92DA0079BE5B /* FaceTracking.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FaceTracking.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5AB7BD11D9E92DA0079BE5B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E5AB7BD31D9E92DA0079BE5B /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -64,7 +62,6 @@
 			children = (
 				E5AB7BD11D9E92DA0079BE5B /* AppDelegate.swift */,
 				E5AB7BD31D9E92DA0079BE5B /* ViewController.swift */,
-				13E4A9D621C535FA00737965 /* ViewController2.swift */,
 				E5AB7BD51D9E92DA0079BE5B /* Main.storyboard */,
 				E5AB7BD81D9E92DA0079BE5B /* Assets.xcassets */,
 				E5AB7BDA1D9E92DA0079BE5B /* LaunchScreen.storyboard */,
@@ -156,7 +153,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				E5AB7BD41D9E92DA0079BE5B /* ViewController.swift in Sources */,
-				13E4A9D721C535FA00737965 /* ViewController2.swift in Sources */,
 				13D480EE21C3842F00211ED7 /* FaceDetector.swift in Sources */,
 				E5AB7BD21D9E92DA0079BE5B /* AppDelegate.swift in Sources */,
 			);
@@ -285,7 +281,7 @@
 				INFOPLIST_FILE = FaceTracking/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.droidsonroids22.FaceTracking;
+				PRODUCT_BUNDLE_IDENTIFIER = com.appsculture.FaceTracking;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 			};
@@ -299,7 +295,7 @@
 				INFOPLIST_FILE = FaceTracking/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.droidsonroids22.FaceTracking;
+				PRODUCT_BUNDLE_IDENTIFIER = com.appsculture.FaceTracking;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 			};

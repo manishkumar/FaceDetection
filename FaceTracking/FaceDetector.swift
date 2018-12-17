@@ -1,4 +1,6 @@
+//
 //  FaceDetector.swift
+//  FaceTracking
 //
 //  Created by Nino
 //
@@ -42,6 +44,8 @@ final class FaceDetector: NSObject, FaceDetecting {
     
     init(captureDevice: AVCaptureDevice) {
         self.captureDevice = captureDevice
+        super.init()
+        self.configure()
     }
     
     private func configure() {
@@ -87,13 +91,14 @@ extension FaceDetector: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput!,
                        didDrop sampleBuffer: CMSampleBuffer!,
                        from connection: AVCaptureConnection!) {
+        print("captureOutput")
         
-        let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
-        let attachments = CMCopyDictionaryOfAttachments(kCFAllocatorDefault,
-                                                        sampleBuffer,
-                                                        kCMAttachmentMode_ShouldPropagate)
-        let ciImage = CIImage(cvImageBuffer: pixelBuffer!,
-                              options: attachments as! [String : Any]?)
+        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        guard let attachments = CMCopyDictionaryOfAttachments(kCFAllocatorDefault,
+                                                              sampleBuffer,
+                                                              kCMAttachmentMode_ShouldPropagate) as? [String : Any] else { return }
+        let ciImage = CIImage(cvImageBuffer: pixelBuffer,
+                              options: attachments)
         let options: [String : Any] = [CIDetectorImageOrientation: exifOrientation(orientation: UIDevice.current.orientation),
                                        CIDetectorEyeBlink: true,
                                        CIDetectorReturnSubFeatures: true]

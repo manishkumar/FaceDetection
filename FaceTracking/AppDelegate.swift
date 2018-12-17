@@ -1,6 +1,6 @@
 //
 //  AppDelegate.swift
-//  AutoCamera
+//  FaceTracking
 //
 //  Created by Nino
 //
@@ -16,7 +16,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         return true
     }
-
 
 }
 

@@ -1,7 +1,9 @@
 //
+//  ViewController.swift
+//  FaceTracking
 //
+//  Created by Nino
 //
-
 
 import UIKit
 import AVFoundation
@@ -18,7 +20,6 @@ struct Platform {
 }
 
 class ViewController: UIViewController {
-//class ViewController3: UIViewController {
     
     fileprivate let captureSession = AVCaptureSession()
     fileprivate let movieOutput = AVCaptureMovieFileOutput()
@@ -41,20 +42,20 @@ class ViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        if !Platform.isSimulator {
+        guard let frontCamera = frontCamera else { return }
+        faceDetector = FaceDetector(captureDevice: frontCamera)
+        faceDetector?.delegate = self
+        faceDetector?.start()
+        
+        /*if !Platform.isSimulator {
             if setupSession() {
                 setupPreview()
                 startSession()
                 startRecording()
                 
-                
-                guard let frontCamera = frontCamera else { return }
-                faceDetector = FaceDetector(captureDevice: frontCamera)
-                faceDetector?.delegate = self
-                
                 Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(timerAction), userInfo: nil, repeats: false)
             }
-        }
+        }*/
     }
     
     // called every time interval from the timer
@@ -181,7 +182,6 @@ class ViewController: UIViewController {
     }
     
     
-    
     func tempURL() -> URL? {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         let fileUrl = paths[0].appendingPathComponent("temp.mp4")
@@ -217,6 +217,13 @@ extension ViewController: AVCaptureFileOutputRecordingDelegate {
 
 extension ViewController: FaceDetectionDelegate {
     func onError(error: FaceDetectionError) {
-        
+        switch error {
+        case .FaceTilted:
+            print("FD: Face tilted")
+        case .FaceOutOfFrame:
+            print("FD: Out of frame")
+        default:
+            print("FD: Other error")
+        }
     }
 }
