@@ -92,6 +92,7 @@ extension FaceDetector: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ captureOutput: AVCaptureOutput!,
                        didOutputSampleBuffer sampleBuffer: CMSampleBuffer!,
                        from connection: AVCaptureConnection!) {
+        print("Capturing output")
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         guard let attachments = CMCopyDictionaryOfAttachments(kCFAllocatorDefault,
                                                               sampleBuffer,
