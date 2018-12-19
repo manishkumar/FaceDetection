@@ -10,7 +10,6 @@ import AVFoundation
 import UIKit
 
 enum FaceDetectionError: Error {
-    case ErrorCreatingDeviceInput
     case FaceOutOfFrame
     case FaceTilted
 }
@@ -21,71 +20,45 @@ protocol FaceDetectionDelegate: class {
 
 protocol FaceDetecting : class {
     var delegate: FaceDetectionDelegate? { get set }
+    var isRunning: Bool { get }
     
     func start()
     func stop()
+    func captureOutput(sampleBuffer: CMSampleBuffer)    
 }
 
 final class FaceDetector: NSObject, FaceDetecting {
     
     fileprivate struct Constants {
         static let tiltAngleThresholdForError: Float = 12
-        static let outputQueue = "output.queue"
     }
     
+    var isRunning: Bool = false
     weak var delegate: FaceDetectionDelegate?
-    let session = AVCaptureSession()
-    let captureDevice: AVCaptureDevice
     let detector = CIDetector(ofType: CIDetectorTypeFace,
                               context: nil,
                               options: [CIDetectorAccuracy : CIDetectorAccuracyHigh])
-    let queue = DispatchQueue(label: Constants.outputQueue)
     
-    init(captureDevice: AVCaptureDevice) {
-        self.captureDevice = captureDevice
+    override init() {
         super.init()
-        self.configure()
-    }
-    
-    private func configure() {
-        session.sessionPreset = AVCaptureSessionPresetHigh
-        
-        let deviceInput = try? AVCaptureDeviceInput(device: captureDevice)
-        let output = AVCaptureVideoDataOutput()
-        let outputKey = kCVPixelBufferPixelFormatTypeKey as String
-        let outputValue = NSNumber(value: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)
-        output.videoSettings = [outputKey : outputValue]
-        output.alwaysDiscardsLateVideoFrames = true
-        
-        session.beginConfiguration()
-        guard session.canAddInput(deviceInput),
-            session.canAddOutput(output) else {
-                delegate?.onError(error: .ErrorCreatingDeviceInput)
-                return
-        }
-        
-        session.addInput(deviceInput)
-        session.addOutput(output)
-        session.commitConfiguration()
-        output.setSampleBufferDelegate(self, queue: queue)
     }
     
     func start() {
-        session.startRunning()
+        isRunning = true
     }
     
     func stop() {
-        session.stopRunning()
+        isRunning = false
     }
     
 }
 
-extension FaceDetector: AVCaptureVideoDataOutputSampleBufferDelegate {
-    
-    
-    func captureOutput(_ captureOutput: AVCaptureOutput!,
-                       didOutputSampleBuffer sampleBuffer: CMSampleBuffer!,
-                       from connection: AVCaptureConnection!) {
+extension FaceDetector {
+    func captureOutput(sampleBuffer: CMSampleBuffer) {
+        if !isRunning {
+            return
+        }
+        
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         guard let attachments = CMCopyDictionaryOfAttachments(kCFAllocatorDefault,
                                                               sampleBuffer,

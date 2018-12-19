@@ -10,34 +10,30 @@ import AVFoundation
 
 class ViewController: UIViewController {
     
-    var faceDetector: FaceDetecting?
-    
-    lazy var frontCamera: AVCaptureDevice? = {
-        guard let devices = AVCaptureDevice.devices(withMediaType: AVMediaTypeVideo) as? [AVCaptureDevice] else { return nil }
-        return devices.filter { $0.position == .front }.first
-    }()
+    let videoRecorder: VideoRecording = VideoRecorder(cameraPosition: .front)
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        guard let camera = frontCamera else { return }
-        faceDetector = FaceDetector(captureDevice: camera)
-        faceDetector?.delegate = self        
+        videoRecorder.startPreview(frame: view.frame, parent: view)
+        videoRecorder.delegate = self
     }
     
 }
 
 
-extension ViewController: FaceDetectionDelegate {
-    func onError(error: FaceDetectionError) {
+extension ViewController: VideoRecorderDelegate {
+    func onStartError(error: VideoRecorderError) {
         switch error {
-        case .ErrorCreatingDeviceInput:
-            print("Error: ErrorCreatingDeviceInput")
-        case .FaceOutOfFrame:
-            print("Error: FaceOutOfFrame")
-        case .FaceTilted:
-            print("Error: FaceTilted")
+        case .errorConfiguringInputDevice:
+            print("errorConfiguringInputDevice")
+        case .errorStartingRecording:
+            print("errorStartingRecording")
+        default:
+            print("Default")
         }
-        
     }
+    
+    
 }
+

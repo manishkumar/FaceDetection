@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		137AEFEB21C92A58002C1AD6 /* VideoProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137AEFEA21C92A58002C1AD6 /* VideoProvider.swift */; };
+		137AEFEB21C92A58002C1AD6 /* VideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137AEFEA21C92A58002C1AD6 /* VideoRecorder.swift */; };
+		137AEFED21CA52CF002C1AD6 /* VideoInputDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137AEFEC21CA52CF002C1AD6 /* VideoInputDevice.swift */; };
 		13D480EE21C3842F00211ED7 /* FaceDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D480ED21C3842F00211ED7 /* FaceDetector.swift */; };
 		E5AB7BD21D9E92DA0079BE5B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AB7BD11D9E92DA0079BE5B /* AppDelegate.swift */; };
 		E5AB7BD41D9E92DA0079BE5B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AB7BD31D9E92DA0079BE5B /* ViewController.swift */; };
@@ -18,7 +19,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		137AEFEA21C92A58002C1AD6 /* VideoProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProvider.swift; sourceTree = "<group>"; };
+		137AEFEA21C92A58002C1AD6 /* VideoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoRecorder.swift; sourceTree = "<group>"; };
+		137AEFEC21CA52CF002C1AD6 /* VideoInputDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoInputDevice.swift; sourceTree = "<group>"; };
 		13D480ED21C3842F00211ED7 /* FaceDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceDetector.swift; sourceTree = "<group>"; };
 		E5AB7BCE1D9E92DA0079BE5B /* FaceTracking.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FaceTracking.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5AB7BD11D9E92DA0079BE5B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -46,7 +48,8 @@
 			isa = PBXGroup;
 			children = (
 				13D480ED21C3842F00211ED7 /* FaceDetector.swift */,
-				137AEFEA21C92A58002C1AD6 /* VideoProvider.swift */,
+				137AEFEA21C92A58002C1AD6 /* VideoRecorder.swift */,
+				137AEFEC21CA52CF002C1AD6 /* VideoInputDevice.swift */,
 			);
 			path = Video;
 			sourceTree = "<group>";
@@ -163,7 +166,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				137AEFEB21C92A58002C1AD6 /* VideoProvider.swift in Sources */,
+				137AEFED21CA52CF002C1AD6 /* VideoInputDevice.swift in Sources */,
+				137AEFEB21C92A58002C1AD6 /* VideoRecorder.swift in Sources */,
 				E5AB7BD41D9E92DA0079BE5B /* ViewController.swift in Sources */,
 				13D480EE21C3842F00211ED7 /* FaceDetector.swift in Sources */,
 				E5AB7BD21D9E92DA0079BE5B /* AppDelegate.swift in Sources */,
