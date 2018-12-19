@@ -49,31 +49,25 @@ final class FaceDetector: NSObject, FaceDetecting {
     
     private func configure() {
         session.sessionPreset = AVCaptureSessionPresetHigh
-        do {
-            let deviceInput = try AVCaptureDeviceInput(device: captureDevice)
-            
-            let output = AVCaptureVideoDataOutput()
-            let outputKey = kCVPixelBufferPixelFormatTypeKey as String
-            let outputValue = NSNumber(value: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)
-            output.videoSettings = [outputKey : outputValue]
-            output.alwaysDiscardsLateVideoFrames = true
-
-            session.beginConfiguration()
-            
-            if session.canAddInput(deviceInput) {
-                session.addInput(deviceInput)
-            }
-            
-            if session.canAddOutput(output) {
-                session.addOutput(output)
-            }
-            
-            session.commitConfiguration()
-            
-            output.setSampleBufferDelegate(self, queue: queue)
-        } catch {
-            delegate?.onError(error: .ErrorCreatingDeviceInput)
+        
+        let deviceInput = try? AVCaptureDeviceInput(device: captureDevice)
+        let output = AVCaptureVideoDataOutput()
+        let outputKey = kCVPixelBufferPixelFormatTypeKey as String
+        let outputValue = NSNumber(value: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange)
+        output.videoSettings = [outputKey : outputValue]
+        output.alwaysDiscardsLateVideoFrames = true
+        
+        session.beginConfiguration()
+        guard session.canAddInput(deviceInput),
+            session.canAddOutput(output) else {
+                delegate?.onError(error: .ErrorCreatingDeviceInput)
+                return
         }
+        
+        session.addInput(deviceInput)
+        session.addOutput(output)
+        session.commitConfiguration()
+        output.setSampleBufferDelegate(self, queue: queue)
     }
     
     func start() {
@@ -88,11 +82,10 @@ final class FaceDetector: NSObject, FaceDetecting {
 
 extension FaceDetector: AVCaptureVideoDataOutputSampleBufferDelegate {
     
-
+    
     func captureOutput(_ captureOutput: AVCaptureOutput!,
                        didOutputSampleBuffer sampleBuffer: CMSampleBuffer!,
                        from connection: AVCaptureConnection!) {
-        print("Capturing output")
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         guard let attachments = CMCopyDictionaryOfAttachments(kCFAllocatorDefault,
                                                               sampleBuffer,
@@ -102,21 +95,17 @@ extension FaceDetector: AVCaptureVideoDataOutputSampleBufferDelegate {
         let options: [String : Any] = [CIDetectorImageOrientation: exifOrientation(orientation: UIDevice.current.orientation),
                                        CIDetectorEyeBlink: true,
                                        CIDetectorReturnSubFeatures: true]
-        guard let features = detector?.features(in: ciImage, options: options) else { return }
         
-        if !(features.count > 0) {
+        let features = detector?.features(in: ciImage, options: options)
+        guard let feature = features?.first as? CIFaceFeature else {
             delegate?.onError(error: .FaceOutOfFrame)
             return
         }
         
-        for feature in features {
-            if let faceFeature = feature as? CIFaceFeature {
-                if !faceFeature.hasMouthPosition {
-                    delegate?.onError(error: .FaceOutOfFrame)
-                } else if abs(faceFeature.faceAngle) > Constants.tiltAngleThresholdForError {
-                    delegate?.onError(error: .FaceTilted)
-                }
-            }
+        if !feature.hasMouthPosition {
+            delegate?.onError(error: .FaceOutOfFrame)
+        } else if abs(feature.faceAngle) > Constants.tiltAngleThresholdForError {
+            delegate?.onError(error: .FaceTilted)
         }
     }
     
