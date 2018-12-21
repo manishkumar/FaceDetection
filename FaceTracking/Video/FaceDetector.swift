@@ -60,11 +60,9 @@ extension FaceDetector {
         }
         
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        guard let attachments = CMCopyDictionaryOfAttachments(kCFAllocatorDefault,
-                                                              sampleBuffer,
-                                                              kCMAttachmentMode_ShouldPropagate) as? [String : Any] else { return }
-        let ciImage = CIImage(cvImageBuffer: pixelBuffer,
-                              options: attachments)
+        guard let attachments = CMCopyDictionaryOfAttachments(kCFAllocatorDefault, sampleBuffer, kCMAttachmentMode_ShouldPropagate) as? [String : Any] else { return }
+        
+        let ciImage = CIImage(cvImageBuffer: pixelBuffer, options: attachments)
         let options: [String : Any] = [CIDetectorImageOrientation: exifOrientation(orientation: UIDevice.current.orientation),
                                        CIDetectorEyeBlink: true,
                                        CIDetectorReturnSubFeatures: true]

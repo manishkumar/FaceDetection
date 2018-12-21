@@ -23,14 +23,14 @@ class ViewController: UIViewController {
 
 
 extension ViewController: VideoRecorderDelegate {
-    func onStartError(error: VideoRecorderError) {
+    func onError(error: VideoRecorderError) {
         switch error {
         case .errorConfiguringInputDevice:
             print("errorConfiguringInputDevice")
         case .errorStartingRecording:
             print("errorStartingRecording")
-        default:
-            print("Default")
+        case .faceDetectionError(let error):
+            print("faceDetectionError \(error)")
         }
     }
     

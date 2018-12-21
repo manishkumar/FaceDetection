@@ -16,7 +16,7 @@ enum VideoRecorderError: Error {
 }
 
 protocol VideoRecorderDelegate: class {
-    func onStartError(error: VideoRecorderError)
+    func onError(error: VideoRecorderError)
 }
 
 protocol VideoRecording : class {
@@ -38,7 +38,7 @@ final class VideoRecorder: NSObject, VideoRecording {
     fileprivate let cameraPosition: AVCaptureDevice.Position
     fileprivate let queue = DispatchQueue(label: Constants.outputQueue)
     
-    internal weak var delegate: VideoRecorderDelegate?
+    weak var delegate: VideoRecorderDelegate?
     fileprivate var previewLayer: AVCaptureVideoPreviewLayer?    
     fileprivate var avPlayerLayer: AVPlayerLayer?
     fileprivate var faceDetector: FaceDetecting?
@@ -92,7 +92,7 @@ final class VideoRecorder: NSObject, VideoRecording {
             let microphoneInput = microphone,
             session.canAddInput(cameraInput),
             session.canAddInput(microphoneInput) else {
-                delegate?.onStartError(error: .errorConfiguringInputDevice)
+                delegate?.onError(error: .errorConfiguringInputDevice)
                 return
         }
         
@@ -122,11 +122,6 @@ extension VideoRecorder: AVCaptureAudioDataOutputSampleBufferDelegate, AVCapture
 
 extension VideoRecorder: FaceDetectionDelegate {
     func onError(error: FaceDetectionError) {
-        switch error {
-        case .FaceOutOfFrame:
-            print("Error: FaceOutOfFrame")
-        case .FaceTilted:
-            print("Error: FaceTilted")
-        }
+        delegate?.onError(error: .faceDetectionError(error: error))
     }
 }
