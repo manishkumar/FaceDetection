@@ -12,6 +12,8 @@
 		13966D4B21D1E6220071D448 /* Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13966D4521D1E6220071D448 /* Capture.swift */; };
 		13966D4C21D1E6220071D448 /* Composer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13966D4621D1E6220071D448 /* Composer.swift */; };
 		13966D4E21D1E6220071D448 /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13966D4821D1E6220071D448 /* Recorder.swift */; };
+		13966D5221D24EB40071D448 /* RecorderError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13966D5121D24EB40071D448 /* RecorderError.swift */; };
+		13966D5421D24F070071D448 /* CaptureError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13966D5321D24F070071D448 /* CaptureError.swift */; };
 		13D480EE21C3842F00211ED7 /* FaceDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D480ED21C3842F00211ED7 /* FaceDetector.swift */; };
 		E5AB7BD21D9E92DA0079BE5B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AB7BD11D9E92DA0079BE5B /* AppDelegate.swift */; };
 		E5AB7BD41D9E92DA0079BE5B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AB7BD31D9E92DA0079BE5B /* ViewController.swift */; };
@@ -27,6 +29,8 @@
 		13966D4521D1E6220071D448 /* Capture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Capture.swift; sourceTree = "<group>"; };
 		13966D4621D1E6220071D448 /* Composer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Composer.swift; sourceTree = "<group>"; };
 		13966D4821D1E6220071D448 /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Recorder.swift; sourceTree = "<group>"; };
+		13966D5121D24EB40071D448 /* RecorderError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecorderError.swift; sourceTree = "<group>"; };
+		13966D5321D24F070071D448 /* CaptureError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureError.swift; sourceTree = "<group>"; };
 		13D480ED21C3842F00211ED7 /* FaceDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceDetector.swift; sourceTree = "<group>"; };
 		E5AB7BCE1D9E92DA0079BE5B /* FaceTracking.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FaceTracking.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5AB7BD11D9E92DA0079BE5B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -66,6 +70,8 @@
 				13966D4521D1E6220071D448 /* Capture.swift */,
 				13966D4621D1E6220071D448 /* Composer.swift */,
 				13966D4821D1E6220071D448 /* Recorder.swift */,
+				13966D5121D24EB40071D448 /* RecorderError.swift */,
+				13966D5321D24F070071D448 /* CaptureError.swift */,
 			);
 			path = Recorder;
 			sourceTree = "<group>";
@@ -188,9 +194,11 @@
 				137AEFEB21C92A58002C1AD6 /* VideoRecorder.swift in Sources */,
 				E5AB7BD41D9E92DA0079BE5B /* ViewController.swift in Sources */,
 				13966D4E21D1E6220071D448 /* Recorder.swift in Sources */,
+				13966D5221D24EB40071D448 /* RecorderError.swift in Sources */,
 				13D480EE21C3842F00211ED7 /* FaceDetector.swift in Sources */,
 				13966D4B21D1E6220071D448 /* Capture.swift in Sources */,
 				E5AB7BD21D9E92DA0079BE5B /* AppDelegate.swift in Sources */,
+				13966D5421D24F070071D448 /* CaptureError.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

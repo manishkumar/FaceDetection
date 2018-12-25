@@ -9,45 +9,6 @@ import Foundation
 import AVFoundation
 import UIKit
 
-enum CaptureError: Error {
-    case presetNotSupportedByVideoDevice(AVCaptureSession.Preset)
-    case couldNotGetVideoDevice
-    case couldNotGetAudioDevice
-    case couldNotObtainVideoDeviceInput(Error)
-    case couldNotObtainAudioDeviceInput(Error)
-    case couldNotAddVideoDataOutput
-    case couldNotAddAudioDataOutput
-}
-
-extension CaptureError: LocalizedError {
-    var errorDescription: String? {
-        switch self {
-        case let .presetNotSupportedByVideoDevice(preset):
-            return "Capture session preset not supported by video device: \(preset)"
-        case .couldNotGetVideoDevice:
-            return "Could not get video device"
-        case .couldNotGetAudioDevice:
-            return "Could not get video device"
-        case .couldNotObtainVideoDeviceInput:
-            return "Unable to obtain video device input"
-        case .couldNotObtainAudioDeviceInput:
-            return "Unable to obtain audio device input"
-        case .couldNotAddVideoDataOutput:
-            return "Could not add video data output"
-        case .couldNotAddAudioDataOutput:
-            return "Could not add audio data output"
-        }
-    }
-}
-
-protocol CaptureDelegate: class {
-    func captureWillStart()
-    func captureDidStart()
-    func captureWillStop()
-    func captureDidStop()
-    func captureDidFail(with error: CaptureError)
-}
-
 final class Capture {
     
     weak var delegate: CaptureDelegate?
@@ -112,7 +73,6 @@ final class Capture {
         
         // Check the availability of video and audio devices. Create and start the capture session only if the devices are present
         do {
-            // See if we have any video device. Get the input device and also validate the settings
             if #available(iOS 10.0, *) {
                 guard let device = AVCaptureDevice.defaultDevice(withDeviceType: .builtInWideAngleCamera, mediaType: AVMediaTypeVideo, position: devicePosition),
                     device.supportsAVCaptureSessionPreset(preset) else {
@@ -122,17 +82,18 @@ final class Capture {
                 
                 self.videoDevice = device
                 
-                // find the audio device
                 guard let audioDevice = AVCaptureDevice.defaultDevice(withDeviceType: .builtInMicrophone, mediaType: AVMediaTypeAudio, position: .unspecified) else {
                     delegate.captureDidFail(with: .couldNotGetAudioDevice)
                     return
                 }
                 
                 self.audioDevice = audioDevice
-                start(preset)
+                
             } else {
                 // Fallback on earlier versions
             }
+            
+            start(preset)
         }
     }
     

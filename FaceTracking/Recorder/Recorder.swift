@@ -10,54 +10,6 @@ import AVFoundation
 import CoreImage
 import UIKit
 
-enum RecorderError: Error {
-    case couldNotCreateAssetWriter(Error)
-    case couldNotAddAssetWriterVideoInput
-    case couldNotAddAssetWriterAudioInput
-    case couldNotGetAudioSampleBufferFormatDescription
-    case couldNotGetStreamBasicDescriptionOfAudioSampleBuffer
-    case couldNotCompleteWritingVideo
-    case couldNotApplyAudioOutputSettings
-    case couldNotWriteAudioData
-    case couldNotWriteVideoData
-}
-
-extension RecorderError: LocalizedError {
-    var errorDescription: String? {
-        switch self {
-        case let .couldNotCreateAssetWriter(error):
-            return "Could not create asset writer, error: \(error)"
-        case .couldNotAddAssetWriterVideoInput:
-            return "Could not add asset writer video input"
-        case .couldNotAddAssetWriterAudioInput:
-            return "Could not add asset writer audio input"
-        case .couldNotGetAudioSampleBufferFormatDescription:
-            return "Could not get current audio sample buffer format description"
-        case .couldNotGetStreamBasicDescriptionOfAudioSampleBuffer:
-            return "Could not get stream basic description of audio sample buffer"
-        case .couldNotCompleteWritingVideo:
-            return "Could not complete writing the video"
-        case .couldNotApplyAudioOutputSettings:
-            return "Could not apply audio output settings"
-        case .couldNotWriteAudioData:
-            return "Could not write audio data, recording aborted"
-        case .couldNotWriteVideoData:
-            return "Could not write video data, recording aborted"
-        }
-    }
-}
-
-protocol RecorderDelegate: class {
-    func recorderDidUpdate(drawingImage: CIImage)
-    func recorderDidStartRecording()
-    func recorderDidAbortRecording()
-    func recorderDidFinishRecording()
-    func recorderWillStartWriting()
-    func recorderDidFinishWriting(outputURL: URL)
-    func recorderDidUpdate(recordingSeconds: Int)
-    func recorderDidFail(with error: Error & LocalizedError)
-}
-
 final class Recorder: NSObject {
     
     weak var delegate: RecorderDelegate?
@@ -75,6 +27,7 @@ final class Recorder: NSObject {
         static let tempVideoFileExtention = "mov"
     }
     
+    private let ciContext: CIContext
     private var capture: Capture!
     private var videoWritingStarted = false
     private var videoWritingStartTime = CMTime()
@@ -99,9 +52,11 @@ final class Recorder: NSObject {
     }
     
     
-    init(devicePosition: AVCaptureDevice.Position,
+    init(ciContext: CIContext,
+         devicePosition: AVCaptureDevice.Position,
          preset: String,
          previewView: UIView) {
+        self.ciContext = ciContext
         super.init()
         
         capture = Capture(devicePosition: devicePosition,
@@ -111,7 +66,6 @@ final class Recorder: NSObject {
                           audioDataOutputSampleBufferDelegate: self,
                           previewView: previewView)
         faceDetector.delegate = self
-        faceDetector.start()
         
         // handle AVCaptureSessionWasInterruptedNotification (such as incoming phone call)
         NotificationCenter.default.addObserver(self, selector: #selector(avCaptureSessionWasInterrupted(_:)),
@@ -222,7 +176,6 @@ final class Recorder: NSObject {
     
     func startRecording() {
         capture.queue.async {
-            self.faceDetector.start()
             self.removeTemporaryVideoFileIfAny()
             
             guard let newAssetWriter = self.makeAssetWriter() else { return }
@@ -336,9 +289,9 @@ final class Recorder: NSObject {
         if #available(iOS 10.0, *) {
             timer = Timer.scheduledTimer(withTimeInterval: timerUpdateInterval,
                                          repeats: true) { [weak self] _ in
-                                            guard let strongSelf = self else { return }
+                                            guard let `self` = self else { return }
                                             DispatchQueue.main.async {
-                                                strongSelf.delegate?.recorderDidUpdate(recordingSeconds: strongSelf.recordingSeconds)
+                                                //self.delegate?.recorderDidUpdate(recordingSeconds: self.recordingSeconds)
                                             }
             }
         } else {
@@ -370,19 +323,24 @@ final class Recorder: NSObject {
     }
     
     fileprivate func handleVideoSampleBuffer(buffer: CMSampleBuffer) {
-        faceDetector.captureOutput(sampleBuffer: buffer)
+        //faceDetector.captureOutput(sampleBuffer: buffer)
         
         let timestamp = CMSampleBufferGetPresentationTimeStamp(buffer)
         
         // update the video dimensions information
-        guard let formatDesc = CMSampleBufferGetFormatDescription(buffer),
-            let writer = assetWriter,
-            let pixelBufferAdaptor = assetWriterInputPixelBufferAdaptor else {
-                return
-        }
+        guard let formatDesc = CMSampleBufferGetFormatDescription(buffer) else { return }
         currentVideoDimensions = CMVideoFormatDescriptionGetDimensions(formatDesc)
         
+        guard let imageBuffer = CMSampleBufferGetImageBuffer(buffer) else { return }
+        let sourceImage = CIImage(cvPixelBuffer: imageBuffer)
         
+        guard let writer = assetWriter,
+            let pixelBufferAdaptor = assetWriterInputPixelBufferAdaptor else {
+            DispatchQueue.main.async {
+                self.delegate?.recorderDidUpdate(drawingImage: sourceImage)
+            }
+            return
+        }
         
         // if we need to write video and haven't started yet, start writing
         if !videoWritingStarted {
@@ -401,6 +359,16 @@ final class Recorder: NSObject {
         }
         
         guard let renderedOutputPixelBuffer = getRenderedOutputPixelBuffer(adaptor: pixelBufferAdaptor) else { return }
+        
+        // render the filtered image back to the pixel buffer (no locking needed as CIContext's render method will do that
+        ciContext.render(sourceImage, to: renderedOutputPixelBuffer, bounds: sourceImage.extent, colorSpace: CGColorSpaceCreateDeviceRGB())
+        
+        // pass option nil to enable color matching at the output, otherwise the color will be off
+        let drawImage = CIImage(cvPixelBuffer: renderedOutputPixelBuffer)
+        DispatchQueue.main.async {
+            self.delegate?.recorderDidUpdate(drawingImage: drawImage)
+        }
+        
         currentVideoTime = timestamp
         
         // write the video data
