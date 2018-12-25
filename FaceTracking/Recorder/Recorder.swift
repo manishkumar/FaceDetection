@@ -23,26 +23,27 @@ final class Recorder: NSObject {
     }
     
     fileprivate struct Constants {
-        static let tempVideoFilename = "recording"
+        static let tempVideoFilename = "recording2"
         static let tempVideoFileExtention = "mov"
+        static let timerUpdateInterval = 1.0
+        static let defaultHeight = 100
+        static let defaultWidth = 100
     }
     
-    private let ciContext: CIContext
+    private let ciContext: CIContext!
     private var capture: Capture!
-    private var videoWritingStarted = false
-    private var videoWritingStartTime = CMTime()
+    
     private(set) var assetWriter: AVAssetWriter?
     private var assetWriterAudioInput: AVAssetWriterInput?
     private var assetWriterVideoInput: AVAssetWriterInput?
     private var assetWriterInputPixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor?
-    
     private var currentAudioSampleBufferFormatDescription: CMFormatDescription?
     private var currentVideoDimensions: CMVideoDimensions?
-    private var currentVideoTime = CMTime()
-    
     private var timer: Timer?
-    private let timerUpdateInterval = 0.25
-    
+    private var currentVideoTime = CMTime()
+    private var videoWritingStarted = false
+    private var videoWritingStartTime = CMTime()
+
     fileprivate var faceDetector: FaceDetecting = FaceDetector()
     
     private var temporaryVideoFileURL: URL {
@@ -51,12 +52,15 @@ final class Recorder: NSObject {
             .appendingPathExtension(Constants.tempVideoFileExtention)
     }
     
-    
-    init(ciContext: CIContext,
-         devicePosition: AVCaptureDevice.Position,
+    init(devicePosition: AVCaptureDevice.Position,
          preset: String,
          previewView: UIView) {
-        self.ciContext = ciContext
+        guard let eaglContext = EAGLContext(api: .openGLES2) else {
+            fatalError("Could not create EAGLContext")
+        }
+        
+        self.ciContext = CIContext(eaglContext: eaglContext, options: [kCIContextWorkingColorSpace: NSNull()])
+        
         super.init()
         
         capture = Capture(devicePosition: devicePosition,
@@ -78,8 +82,6 @@ final class Recorder: NSObject {
                                                object: nil)
     }
     
-    
-    
     private func makeAssetWriter() -> AVAssetWriter? {
         do {
             return try AVAssetWriter(url: temporaryVideoFileURL, fileType: AVFileTypeQuickTimeMovie)
@@ -96,14 +98,14 @@ final class Recorder: NSObject {
         if #available(iOS 11.0, *) {
             settings = [
                 AVVideoCodecKey: AVVideoCodecType.h264,
-                AVVideoWidthKey: currentVideoDimensions?.width ?? 200,
-                AVVideoHeightKey: currentVideoDimensions?.height ?? 200,
+                AVVideoWidthKey: currentVideoDimensions?.width ?? Constants.defaultWidth,
+                AVVideoHeightKey: currentVideoDimensions?.height ?? Constants.defaultHeight,
             ]
         } else {
             settings = [
                 AVVideoCodecKey: AVVideoCodecH264,
-                AVVideoWidthKey: currentVideoDimensions?.width ?? 200,
-                AVVideoHeightKey: currentVideoDimensions?.height ?? 200,
+                AVVideoWidthKey: currentVideoDimensions?.width ?? Constants.defaultWidth,
+                AVVideoHeightKey: currentVideoDimensions?.height ?? Constants.defaultHeight,
             ]
         }
         let input = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: settings)
@@ -115,8 +117,8 @@ final class Recorder: NSObject {
     private func makeAssetWriterInputPixelBufferAdaptor(with input: AVAssetWriterInput) -> AVAssetWriterInputPixelBufferAdaptor {
         let attributes: [String: Any] = [
             kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
-            kCVPixelBufferWidthKey as String: currentVideoDimensions?.width ?? 200,
-            kCVPixelBufferHeightKey as String: currentVideoDimensions?.height ?? 200,
+            kCVPixelBufferWidthKey as String: currentVideoDimensions?.width ?? Constants.defaultWidth,
+            kCVPixelBufferHeightKey as String: currentVideoDimensions?.height ?? Constants.defaultHeight,
             kCVPixelFormatOpenGLESCompatibility as String: kCFBooleanTrue,
             ]
         return AVAssetWriterInputPixelBufferAdaptor(
@@ -287,12 +289,11 @@ final class Recorder: NSObject {
     
     fileprivate func startTimer() {
         if #available(iOS 10.0, *) {
-            timer = Timer.scheduledTimer(withTimeInterval: timerUpdateInterval,
-                                         repeats: true) { [weak self] _ in
-                                            guard let `self` = self else { return }
-                                            DispatchQueue.main.async {
-                                                //self.delegate?.recorderDidUpdate(recordingSeconds: self.recordingSeconds)
-                                            }
+            timer = Timer.scheduledTimer(withTimeInterval: Constants.timerUpdateInterval, repeats: true) { [weak self] _ in
+                guard let `self` = self else { return }
+                DispatchQueue.main.async {
+                    self.delegate?.recorderDidUpdate(recordingSeconds: self.recordingSeconds)
+                }
             }
         } else {
             // Fallback on earlier versions
@@ -336,10 +337,10 @@ final class Recorder: NSObject {
         
         guard let writer = assetWriter,
             let pixelBufferAdaptor = assetWriterInputPixelBufferAdaptor else {
-            DispatchQueue.main.async {
-                self.delegate?.recorderDidUpdate(drawingImage: sourceImage)
-            }
-            return
+                DispatchQueue.main.async {
+                    self.delegate?.recorderDidUpdate(drawingImage: sourceImage)
+                }
+                return
         }
         
         // if we need to write video and haven't started yet, start writing
