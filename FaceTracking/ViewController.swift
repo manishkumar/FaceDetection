@@ -20,11 +20,10 @@ class ViewController: UIViewController {
         
         recorder = Recorder(devicePosition: devicePosition,
                             preset: videoQuality,
-                            previewFrame: cameraView.frame,
-                            previewSuperView: cameraView)
+                            previewView: self.view)
         recorder.delegate = self
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-            self.recorder.startRecording()
+            //self.recorder.startRecording()
         }
     }
 }

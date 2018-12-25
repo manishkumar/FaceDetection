@@ -101,8 +101,7 @@ final class Recorder: NSObject {
     
     init(devicePosition: AVCaptureDevice.Position,
          preset: String,
-         previewFrame: CGRect,
-         previewSuperView: UIView) {
+         previewView: UIView) {
         super.init()
         
         capture = Capture(devicePosition: devicePosition,
@@ -110,19 +109,19 @@ final class Recorder: NSObject {
                           delegate: self,
                           videoDataOutputSampleBufferDelegate: self,
                           audioDataOutputSampleBufferDelegate: self,
-                          previewFrame: previewFrame,
-                          previewSuperView: previewSuperView)
+                          previewView: previewView)
         faceDetector.delegate = self
+        faceDetector.start()
         
         // handle AVCaptureSessionWasInterruptedNotification (such as incoming phone call)
-        /*NotificationCenter.default.addObserver(self, selector: #selector(avCaptureSessionWasInterrupted(_:)),
+        NotificationCenter.default.addObserver(self, selector: #selector(avCaptureSessionWasInterrupted(_:)),
                                                name: .AVCaptureSessionWasInterrupted,
                                                object: nil)
         
         // handle UIApplicationDidEnterBackgroundNotification
         NotificationCenter.default.addObserver(self, selector: #selector(applicationDidEnterBackground(_:)),
                                                name: .UIApplicationDidEnterBackground,
-                                               object: nil)*/
+                                               object: nil)
     }
     
     
@@ -162,8 +161,8 @@ final class Recorder: NSObject {
     private func makeAssetWriterInputPixelBufferAdaptor(with input: AVAssetWriterInput) -> AVAssetWriterInputPixelBufferAdaptor {
         let attributes: [String: Any] = [
             kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
-            kCVPixelBufferWidthKey as String: currentVideoDimensions?.width ?? 0,
-            kCVPixelBufferHeightKey as String: currentVideoDimensions?.height ?? 0,
+            kCVPixelBufferWidthKey as String: currentVideoDimensions?.width ?? 200,
+            kCVPixelBufferHeightKey as String: currentVideoDimensions?.height ?? 200,
             kCVPixelFormatOpenGLESCompatibility as String: kCFBooleanTrue,
             ]
         return AVAssetWriterInputPixelBufferAdaptor(
@@ -223,6 +222,7 @@ final class Recorder: NSObject {
     
     func startRecording() {
         capture.queue.async {
+            self.faceDetector.start()
             self.removeTemporaryVideoFileIfAny()
             
             guard let newAssetWriter = self.makeAssetWriter() else { return }
@@ -470,6 +470,6 @@ extension Recorder: CaptureDelegate {
 
 extension Recorder: FaceDetectionDelegate {
     func onError(error: FaceDetectionError) {
-        
+        print("FaceDetectionError: \(error)")
     }    
 }

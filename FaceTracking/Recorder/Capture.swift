@@ -60,9 +60,7 @@ final class Capture {
     private var audioDevice: AVCaptureDevice!
     private var videoDevice: AVCaptureDevice!
     private var previewLayer: AVCaptureVideoPreviewLayer?
-    private var previewFrame: CGRect
-    private var previewSuperView: UIView
-    
+    private var previewView: UIView
     
     private var videoDeviceInput: AVCaptureDeviceInput? {
         do {
@@ -106,13 +104,11 @@ final class Capture {
          delegate: CaptureDelegate,
          videoDataOutputSampleBufferDelegate: AVCaptureVideoDataOutputSampleBufferDelegate,
          audioDataOutputSampleBufferDelegate: AVCaptureAudioDataOutputSampleBufferDelegate,
-         previewFrame: CGRect,
-         previewSuperView: UIView) {
+         previewView: UIView) {
         self.delegate = delegate
         self.videoDataOutputSampleBufferDelegate = videoDataOutputSampleBufferDelegate
         self.audioDataOutputSampleBufferDelegate = audioDataOutputSampleBufferDelegate
-        self.previewFrame = previewFrame
-        self.previewSuperView = previewSuperView
+        self.previewView = previewView
         
         // Check the availability of video and audio devices. Create and start the capture session only if the devices are present
         do {
@@ -133,7 +129,6 @@ final class Capture {
                 }
                 
                 self.audioDevice = audioDevice
-                addPreview()
                 start(preset)
             } else {
                 // Fallback on earlier versions
@@ -142,14 +137,12 @@ final class Capture {
     }
     
     func addPreview() {
-        DispatchQueue.main.async {
-            self.previewLayer = AVCaptureVideoPreviewLayer(session: self.session)
-            self.previewLayer?.frame = self.previewFrame
-            self.previewLayer?.videoGravity = AVLayerVideoGravityResizeAspectFill
-            
-            guard let previewLayer = self.previewLayer else { return }
-            self.previewSuperView.layer.addSublayer(previewLayer)
-        }
+        self.previewLayer = AVCaptureVideoPreviewLayer(session: self.session)
+        self.previewLayer?.frame = self.previewView.frame
+        self.previewLayer?.videoGravity = AVLayerVideoGravityResizeAspectFill
+        
+        guard let previewLayer = self.previewLayer else { return }
+        self.previewView.layer.addSublayer(previewLayer)
     }
     
     func start(_ preset: String) {
@@ -201,6 +194,7 @@ final class Capture {
             
             DispatchQueue.main.async {
                 self.delegate?.captureDidStart()
+                self.addPreview()
             }
         }
     }

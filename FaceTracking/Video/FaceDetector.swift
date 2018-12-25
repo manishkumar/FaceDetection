@@ -30,7 +30,7 @@ protocol FaceDetecting : class {
 final class FaceDetector: NSObject, FaceDetecting {
     
     fileprivate struct Constants {
-        static let tiltAngleThresholdForError: Float = 12
+        static let tiltAngleThresholdForError: Float = 20
     }
     
     var isRunning: Bool = false
