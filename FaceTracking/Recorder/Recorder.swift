@@ -8,6 +8,7 @@
 import Foundation
 import AVFoundation
 import CoreImage
+import UIKit
 
 enum RecorderError: Error {
     case couldNotCreateAssetWriter(Error)
@@ -62,7 +63,7 @@ final class Recorder: NSObject {
     weak var delegate: RecorderDelegate?
     
     var recordingSeconds: Int {
-        guard assetWriter != nil else { return 0 }
+        guard let _ = assetWriter else { return 0 }
         let diff = currentVideoTime - videoWritingStartTime
         let seconds = CMTimeGetSeconds(diff)
         guard !(seconds.isNaN || seconds.isInfinite) else { return 0 }
@@ -73,12 +74,8 @@ final class Recorder: NSObject {
         static let tempVideoFilename = "recording"
         static let tempVideoFileExtention = "mov"
     }
-    static private let deviceRgbColorSpace = CGColorSpaceCreateDeviceRGB()
     
-    
-    private let ciContext: CIContext
     private var capture: Capture!
-    
     private var videoWritingStarted = false
     private var videoWritingStartTime = CMTime()
     private(set) var assetWriter: AVAssetWriter?
@@ -93,11 +90,42 @@ final class Recorder: NSObject {
     private var timer: Timer?
     private let timerUpdateInterval = 0.25
     
+    fileprivate var faceDetector: FaceDetecting = FaceDetector()
+    
     private var temporaryVideoFileURL: URL {
         return URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent(Constants.tempVideoFilename)
             .appendingPathExtension(Constants.tempVideoFileExtention)
     }
+    
+    
+    init(devicePosition: AVCaptureDevice.Position,
+         preset: String,
+         previewFrame: CGRect,
+         previewSuperView: UIView) {
+        super.init()
+        
+        capture = Capture(devicePosition: devicePosition,
+                          preset: preset,
+                          delegate: self,
+                          videoDataOutputSampleBufferDelegate: self,
+                          audioDataOutputSampleBufferDelegate: self,
+                          previewFrame: previewFrame,
+                          previewSuperView: previewSuperView)
+        faceDetector.delegate = self
+        
+        // handle AVCaptureSessionWasInterruptedNotification (such as incoming phone call)
+        /*NotificationCenter.default.addObserver(self, selector: #selector(avCaptureSessionWasInterrupted(_:)),
+                                               name: .AVCaptureSessionWasInterrupted,
+                                               object: nil)
+        
+        // handle UIApplicationDidEnterBackgroundNotification
+        NotificationCenter.default.addObserver(self, selector: #selector(applicationDidEnterBackground(_:)),
+                                               name: .UIApplicationDidEnterBackground,
+                                               object: nil)*/
+    }
+    
+    
     
     private func makeAssetWriter() -> AVAssetWriter? {
         do {
@@ -115,14 +143,14 @@ final class Recorder: NSObject {
         if #available(iOS 11.0, *) {
             settings = [
                 AVVideoCodecKey: AVVideoCodecType.h264,
-                AVVideoWidthKey: currentVideoDimensions?.width ?? 0,
-                AVVideoHeightKey: currentVideoDimensions?.height ?? 0,
+                AVVideoWidthKey: currentVideoDimensions?.width ?? 200,
+                AVVideoHeightKey: currentVideoDimensions?.height ?? 200,
             ]
         } else {
             settings = [
                 AVVideoCodecKey: AVVideoCodecH264,
-                AVVideoWidthKey: currentVideoDimensions?.width ?? 0,
-                AVVideoHeightKey: currentVideoDimensions?.height ?? 0,
+                AVVideoWidthKey: currentVideoDimensions?.width ?? 200,
+                AVVideoHeightKey: currentVideoDimensions?.height ?? 200,
             ]
         }
         let input = AVAssetWriterInput(mediaType: AVMediaTypeVideo, outputSettings: settings)
@@ -191,30 +219,6 @@ final class Recorder: NSObject {
         }
         
         return renderedOutputPixelBuffer
-    }
-    
-    init(ciContext: CIContext,
-         devicePosition: AVCaptureDevice.Position,
-         preset: AVCaptureSession.Preset) {
-        self.ciContext = ciContext
-        
-        super.init()
-        
-        capture = Capture(devicePosition: devicePosition,
-                          preset: preset,
-                          delegate: self,
-                          videoDataOutputSampleBufferDelegate: self,
-                          audioDataOutputSampleBufferDelegate: self)
-        
-        // handle AVCaptureSessionWasInterruptedNotification (such as incoming phone call)
-        NotificationCenter.default.addObserver(self, selector: #selector(avCaptureSessionWasInterrupted(_:)),
-                                               name: .AVCaptureSessionWasInterrupted,
-                                               object: nil)
-        
-        // handle UIApplicationDidEnterBackgroundNotification
-        NotificationCenter.default.addObserver(self, selector: #selector(applicationDidEnterBackground(_:)),
-                                               name: .UIApplicationDidEnterBackground,
-                                               object: nil)
     }
     
     func startRecording() {
@@ -366,6 +370,8 @@ final class Recorder: NSObject {
     }
     
     fileprivate func handleVideoSampleBuffer(buffer: CMSampleBuffer) {
+        faceDetector.captureOutput(sampleBuffer: buffer)
+        
         let timestamp = CMSampleBufferGetPresentationTimeStamp(buffer)
         
         // update the video dimensions information
@@ -460,4 +466,10 @@ extension Recorder: CaptureDelegate {
             self.delegate?.recorderDidFail(with: error)
         }
     }
+}
+
+extension Recorder: FaceDetectionDelegate {
+    func onError(error: FaceDetectionError) {
+        
+    }    
 }

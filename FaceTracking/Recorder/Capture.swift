@@ -7,10 +7,12 @@
 
 import Foundation
 import AVFoundation
+import UIKit
 
 enum CaptureError: Error {
     case presetNotSupportedByVideoDevice(AVCaptureSession.Preset)
     case couldNotGetVideoDevice
+    case couldNotGetAudioDevice
     case couldNotObtainVideoDeviceInput(Error)
     case couldNotObtainAudioDeviceInput(Error)
     case couldNotAddVideoDataOutput
@@ -23,6 +25,8 @@ extension CaptureError: LocalizedError {
         case let .presetNotSupportedByVideoDevice(preset):
             return "Capture session preset not supported by video device: \(preset)"
         case .couldNotGetVideoDevice:
+            return "Could not get video device"
+        case .couldNotGetAudioDevice:
             return "Could not get video device"
         case .couldNotObtainVideoDeviceInput:
             return "Unable to obtain video device input"
@@ -55,6 +59,10 @@ final class Capture {
     private(set) var session: AVCaptureSession?
     private var audioDevice: AVCaptureDevice!
     private var videoDevice: AVCaptureDevice!
+    private var previewLayer: AVCaptureVideoPreviewLayer?
+    private var previewFrame: CGRect
+    private var previewSuperView: UIView
+    
     
     private var videoDeviceInput: AVCaptureDeviceInput? {
         do {
@@ -94,47 +102,57 @@ final class Capture {
     }
     
     init(devicePosition: AVCaptureDevice.Position,
-         preset: AVCaptureSession.Preset,
+         preset: String,
          delegate: CaptureDelegate,
          videoDataOutputSampleBufferDelegate: AVCaptureVideoDataOutputSampleBufferDelegate,
-         audioDataOutputSampleBufferDelegate: AVCaptureAudioDataOutputSampleBufferDelegate) {
+         audioDataOutputSampleBufferDelegate: AVCaptureAudioDataOutputSampleBufferDelegate,
+         previewFrame: CGRect,
+         previewSuperView: UIView) {
         self.delegate = delegate
         self.videoDataOutputSampleBufferDelegate = videoDataOutputSampleBufferDelegate
         self.audioDataOutputSampleBufferDelegate = audioDataOutputSampleBufferDelegate
+        self.previewFrame = previewFrame
+        self.previewSuperView = previewSuperView
         
-        // check the availability of video and audio devices
-        // create and start the capture session only if the devices are present
+        // Check the availability of video and audio devices. Create and start the capture session only if the devices are present
         do {
-            #if targetEnvironment(simulator)
-            print("On iPhone Simulator, the app still gets a video device, but the video device will not work")
-            print("On iPad Simulator, the app gets no video device")
-            #endif
-            
-            // see if we have any video device
-            // get the input device and also validate the settings
+            // See if we have any video device. Get the input device and also validate the settings
             if #available(iOS 10.0, *) {
-                if let videoDevice = AVCaptureDevice.defaultDevice(withDeviceType: .builtInWideAngleCamera, mediaType: AVMediaTypeVideo, position: devicePosition) {
-                    // obtain the preset and validate the preset
-                    if videoDevice.supportsAVCaptureSessionPreset(preset as String) {
-                        self.videoDevice = videoDevice
-                        // find the audio device
-                        if let audioDevice = AVCaptureDevice.defaultDevice(withDeviceType: .builtInMicrophone, mediaType: AVMediaTypeAudio, position: .unspecified) {
-                            self.audioDevice = audioDevice
-                            start(preset)
-                        }
-                    } else {
-                        delegate.captureDidFail(with: .presetNotSupportedByVideoDevice(preset))
-                    }
-                } else {
-                    delegate.captureDidFail(with: .couldNotGetVideoDevice)
+                guard let device = AVCaptureDevice.defaultDevice(withDeviceType: .builtInWideAngleCamera, mediaType: AVMediaTypeVideo, position: devicePosition),
+                    device.supportsAVCaptureSessionPreset(preset) else {
+                        delegate.captureDidFail(with: .couldNotGetVideoDevice)
+                        return
                 }
+                
+                self.videoDevice = device
+                
+                // find the audio device
+                guard let audioDevice = AVCaptureDevice.defaultDevice(withDeviceType: .builtInMicrophone, mediaType: AVMediaTypeAudio, position: .unspecified) else {
+                    delegate.captureDidFail(with: .couldNotGetAudioDevice)
+                    return
+                }
+                
+                self.audioDevice = audioDevice
+                addPreview()
+                start(preset)
             } else {
                 // Fallback on earlier versions
             }
         }
     }
     
-    func start(_ preset: AVCaptureSession.Preset) {
+    func addPreview() {
+        DispatchQueue.main.async {
+            self.previewLayer = AVCaptureVideoPreviewLayer(session: self.session)
+            self.previewLayer?.frame = self.previewFrame
+            self.previewLayer?.videoGravity = AVLayerVideoGravityResizeAspectFill
+            
+            guard let previewLayer = self.previewLayer else { return }
+            self.previewSuperView.layer.addSublayer(previewLayer)
+        }
+    }
+    
+    func start(_ preset: String) {
         if session != nil {
             return
         }
@@ -151,7 +169,7 @@ final class Capture {
             
             // create the capture session
             let session = AVCaptureSession()
-            session.sessionPreset = preset as String
+            session.sessionPreset = preset
             session.automaticallyConfiguresApplicationAudioSession = false
             self.session = session
             
