@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		137AEFEB21C92A58002C1AD6 /* VideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137AEFEA21C92A58002C1AD6 /* VideoRecorder.swift */; };
-		137AEFED21CA52CF002C1AD6 /* VideoInputDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137AEFEC21CA52CF002C1AD6 /* VideoInputDevice.swift */; };
 		13966D4B21D1E6220071D448 /* Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13966D4521D1E6220071D448 /* Capture.swift */; };
 		13966D4C21D1E6220071D448 /* Composer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13966D4621D1E6220071D448 /* Composer.swift */; };
 		13966D4E21D1E6220071D448 /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13966D4821D1E6220071D448 /* Recorder.swift */; };
@@ -24,8 +22,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		137AEFEA21C92A58002C1AD6 /* VideoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoRecorder.swift; sourceTree = "<group>"; };
-		137AEFEC21CA52CF002C1AD6 /* VideoInputDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoInputDevice.swift; sourceTree = "<group>"; };
 		13966D4521D1E6220071D448 /* Capture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Capture.swift; sourceTree = "<group>"; };
 		13966D4621D1E6220071D448 /* Composer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Composer.swift; sourceTree = "<group>"; };
 		13966D4821D1E6220071D448 /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Recorder.swift; sourceTree = "<group>"; };
@@ -57,9 +53,6 @@
 		137AEFE921C928FE002C1AD6 /* Video */ = {
 			isa = PBXGroup;
 			children = (
-				13D480ED21C3842F00211ED7 /* FaceDetector.swift */,
-				137AEFEA21C92A58002C1AD6 /* VideoRecorder.swift */,
-				137AEFEC21CA52CF002C1AD6 /* VideoInputDevice.swift */,
 			);
 			path = Video;
 			sourceTree = "<group>";
@@ -67,6 +60,7 @@
 		13966D4421D1E6070071D448 /* Recorder */ = {
 			isa = PBXGroup;
 			children = (
+				13D480ED21C3842F00211ED7 /* FaceDetector.swift */,
 				13966D4521D1E6220071D448 /* Capture.swift */,
 				13966D4621D1E6220071D448 /* Composer.swift */,
 				13966D4821D1E6220071D448 /* Recorder.swift */,
@@ -189,9 +183,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				137AEFED21CA52CF002C1AD6 /* VideoInputDevice.swift in Sources */,
 				13966D4C21D1E6220071D448 /* Composer.swift in Sources */,
-				137AEFEB21C92A58002C1AD6 /* VideoRecorder.swift in Sources */,
 				E5AB7BD41D9E92DA0079BE5B /* ViewController.swift in Sources */,
 				13966D4E21D1E6220071D448 /* Recorder.swift in Sources */,
 				13966D5221D24EB40071D448 /* RecorderError.swift in Sources */,

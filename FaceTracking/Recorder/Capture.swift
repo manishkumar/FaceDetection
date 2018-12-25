@@ -99,7 +99,7 @@ final class Capture {
     
     func addPreview() {
         self.previewLayer = AVCaptureVideoPreviewLayer(session: self.session)
-        self.previewLayer?.frame = self.previewView.frame
+        self.previewLayer?.frame = self.previewView.bounds
         self.previewLayer?.videoGravity = AVLayerVideoGravityResizeAspectFill
         
         guard let previewLayer = self.previewLayer else { return }

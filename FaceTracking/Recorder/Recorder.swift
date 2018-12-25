@@ -23,7 +23,7 @@ final class Recorder: NSObject {
     }
     
     fileprivate struct Constants {
-        static let tempVideoFilename = "recording2"
+        static let tempVideoFilename = "recording"
         static let tempVideoFileExtention = "mov"
         static let timerUpdateInterval = 1.0
         static let defaultHeight = 100
@@ -178,6 +178,7 @@ final class Recorder: NSObject {
     
     func startRecording() {
         capture.queue.async {
+            self.faceDetector.start()
             self.removeTemporaryVideoFileIfAny()
             
             guard let newAssetWriter = self.makeAssetWriter() else { return }
@@ -249,6 +250,8 @@ final class Recorder: NSObject {
     }
     
     func stopRecording() {
+        faceDetector.stop()
+        
         guard let writer = assetWriter else { return }
         
         assetWriterVideoInput = nil
@@ -324,7 +327,7 @@ final class Recorder: NSObject {
     }
     
     fileprivate func handleVideoSampleBuffer(buffer: CMSampleBuffer) {
-        //faceDetector.captureOutput(sampleBuffer: buffer)
+        faceDetector.captureOutput(sampleBuffer: buffer)
         
         let timestamp = CMSampleBufferGetPresentationTimeStamp(buffer)
         
@@ -337,9 +340,6 @@ final class Recorder: NSObject {
         
         guard let writer = assetWriter,
             let pixelBufferAdaptor = assetWriterInputPixelBufferAdaptor else {
-                DispatchQueue.main.async {
-                    self.delegate?.recorderDidUpdate(drawingImage: sourceImage)
-                }
                 return
         }
         
@@ -363,13 +363,6 @@ final class Recorder: NSObject {
         
         // render the filtered image back to the pixel buffer (no locking needed as CIContext's render method will do that
         ciContext.render(sourceImage, to: renderedOutputPixelBuffer, bounds: sourceImage.extent, colorSpace: CGColorSpaceCreateDeviceRGB())
-        
-        // pass option nil to enable color matching at the output, otherwise the color will be off
-        let drawImage = CIImage(cvPixelBuffer: renderedOutputPixelBuffer)
-        DispatchQueue.main.async {
-            self.delegate?.recorderDidUpdate(drawingImage: drawImage)
-        }
-        
         currentVideoTime = timestamp
         
         // write the video data
@@ -423,7 +416,9 @@ extension Recorder: CaptureDelegate {
         startTimer()
     }
     
-    func captureWillStop() {}
+    func captureWillStop() {
+        
+    }
     
     func captureDidStop() {
         stopTimer()
@@ -439,6 +434,6 @@ extension Recorder: CaptureDelegate {
 
 extension Recorder: FaceDetectionDelegate {
     func onError(error: FaceDetectionError) {
-        print("FaceDetectionError: \(error)")
+        delegate?.recorderFaceDetectionError(with: error)
     }    
 }

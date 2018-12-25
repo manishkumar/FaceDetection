@@ -1,7 +1,8 @@
+//
 //  CaptureError.swift
+//  FaceTracking
 //
 //  Created by Nino
-//  Copyright © 2018 Pawel Chmiel. All rights reserved.
 //
 
 import Foundation

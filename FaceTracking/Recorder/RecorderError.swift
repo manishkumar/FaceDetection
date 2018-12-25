@@ -1,7 +1,8 @@
+//
 //  RecorderError.swift
+//  FaceTracking
 //
 //  Created by Nino
-//  Copyright © 2018 Pawel Chmiel. All rights reserved.
 //
 
 import Foundation
@@ -45,7 +46,6 @@ extension RecorderError: LocalizedError {
 }
 
 protocol RecorderDelegate: class {
-    func recorderDidUpdate(drawingImage: CIImage)
     func recorderDidStartRecording()
     func recorderDidAbortRecording()
     func recorderDidFinishRecording()
@@ -53,4 +53,5 @@ protocol RecorderDelegate: class {
     func recorderDidFinishWriting(outputURL: URL)
     func recorderDidUpdate(recordingSeconds: Int)
     func recorderDidFail(with error: Error & LocalizedError)
+    func recorderFaceDetectionError(with error: FaceDetectionError)
 }

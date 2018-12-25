@@ -20,22 +20,20 @@ class ViewController: UIViewController {
         
         recorder = Recorder(devicePosition: devicePosition,
                             preset: videoQuality,
-                            previewView: self.view)
+                            previewView: cameraView)
         recorder.delegate = self
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-            self.recorder.startRecording()
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
-            self.recorder.stopRecording()
-        }
+    }
+    
+    @IBAction func start(_ sender: Any) {
+        recorder.startRecording()
+    }
+    
+    @IBAction func stop(_ sender: Any) {
+        recorder.stopRecording()
     }
 }
 
 extension ViewController: RecorderDelegate {
-    func recorderDidUpdate(drawingImage: CIImage) {
-        //print("recorderDidUpdate image")
-    }
     
     func recorderDidStartRecording() {
         print("recorderDidStartRecording")
@@ -58,11 +56,19 @@ extension ViewController: RecorderDelegate {
     }
     
     func recorderDidUpdate(recordingSeconds: Int) {
-        print("recorderDidUpdate: \(recordingSeconds)")
+        //print("recorderDidUpdate: \(recordingSeconds)")
     }
     
     func recorderDidFail(with error: LocalizedError) {
         print("recorderDidFail: \(error)")
+    }
+    
+    func recorderFaceDetectionError(with error: FaceDetectionError) {
+        print("recorderFaceDetectionError: \(error)")
+        
+        let alert = UIAlertController(title: "Error", message: "Face detection error: \(error)", preferredStyle: UIAlertControllerStyle.alert)
+        alert.addAction(UIAlertAction(title: "Retry", style: UIAlertActionStyle.default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
     }
     
     
