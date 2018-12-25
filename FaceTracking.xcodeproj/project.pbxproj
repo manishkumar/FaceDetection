@@ -9,7 +9,9 @@
 /* Begin PBXBuildFile section */
 		137AEFEB21C92A58002C1AD6 /* VideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137AEFEA21C92A58002C1AD6 /* VideoRecorder.swift */; };
 		137AEFED21CA52CF002C1AD6 /* VideoInputDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137AEFEC21CA52CF002C1AD6 /* VideoInputDevice.swift */; };
-		13966D4321CA95900071D448 /* VideoWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13966D4221CA95900071D448 /* VideoWriter.swift */; };
+		13966D4B21D1E6220071D448 /* Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13966D4521D1E6220071D448 /* Capture.swift */; };
+		13966D4C21D1E6220071D448 /* Composer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13966D4621D1E6220071D448 /* Composer.swift */; };
+		13966D4E21D1E6220071D448 /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13966D4821D1E6220071D448 /* Recorder.swift */; };
 		13D480EE21C3842F00211ED7 /* FaceDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D480ED21C3842F00211ED7 /* FaceDetector.swift */; };
 		E5AB7BD21D9E92DA0079BE5B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AB7BD11D9E92DA0079BE5B /* AppDelegate.swift */; };
 		E5AB7BD41D9E92DA0079BE5B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AB7BD31D9E92DA0079BE5B /* ViewController.swift */; };
@@ -22,7 +24,9 @@
 /* Begin PBXFileReference section */
 		137AEFEA21C92A58002C1AD6 /* VideoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoRecorder.swift; sourceTree = "<group>"; };
 		137AEFEC21CA52CF002C1AD6 /* VideoInputDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoInputDevice.swift; sourceTree = "<group>"; };
-		13966D4221CA95900071D448 /* VideoWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoWriter.swift; sourceTree = "<group>"; };
+		13966D4521D1E6220071D448 /* Capture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Capture.swift; sourceTree = "<group>"; };
+		13966D4621D1E6220071D448 /* Composer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Composer.swift; sourceTree = "<group>"; };
+		13966D4821D1E6220071D448 /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Recorder.swift; sourceTree = "<group>"; };
 		13D480ED21C3842F00211ED7 /* FaceDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceDetector.swift; sourceTree = "<group>"; };
 		E5AB7BCE1D9E92DA0079BE5B /* FaceTracking.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FaceTracking.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5AB7BD11D9E92DA0079BE5B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -52,9 +56,18 @@
 				13D480ED21C3842F00211ED7 /* FaceDetector.swift */,
 				137AEFEA21C92A58002C1AD6 /* VideoRecorder.swift */,
 				137AEFEC21CA52CF002C1AD6 /* VideoInputDevice.swift */,
-				13966D4221CA95900071D448 /* VideoWriter.swift */,
 			);
 			path = Video;
+			sourceTree = "<group>";
+		};
+		13966D4421D1E6070071D448 /* Recorder */ = {
+			isa = PBXGroup;
+			children = (
+				13966D4521D1E6220071D448 /* Capture.swift */,
+				13966D4621D1E6220071D448 /* Composer.swift */,
+				13966D4821D1E6220071D448 /* Recorder.swift */,
+			);
+			path = Recorder;
 			sourceTree = "<group>";
 		};
 		E5AB7BC51D9E92DA0079BE5B = {
@@ -77,6 +90,7 @@
 		E5AB7BD01D9E92DA0079BE5B /* FaceTracking */ = {
 			isa = PBXGroup;
 			children = (
+				13966D4421D1E6070071D448 /* Recorder */,
 				137AEFE921C928FE002C1AD6 /* Video */,
 				E5AB7BD11D9E92DA0079BE5B /* AppDelegate.swift */,
 				E5AB7BD31D9E92DA0079BE5B /* ViewController.swift */,
@@ -170,10 +184,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				137AEFED21CA52CF002C1AD6 /* VideoInputDevice.swift in Sources */,
+				13966D4C21D1E6220071D448 /* Composer.swift in Sources */,
 				137AEFEB21C92A58002C1AD6 /* VideoRecorder.swift in Sources */,
 				E5AB7BD41D9E92DA0079BE5B /* ViewController.swift in Sources */,
+				13966D4E21D1E6220071D448 /* Recorder.swift in Sources */,
 				13D480EE21C3842F00211ED7 /* FaceDetector.swift in Sources */,
-				13966D4321CA95900071D448 /* VideoWriter.swift in Sources */,
+				13966D4B21D1E6220071D448 /* Capture.swift in Sources */,
 				E5AB7BD21D9E92DA0079BE5B /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
