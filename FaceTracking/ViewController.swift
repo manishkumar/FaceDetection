@@ -14,6 +14,7 @@ class ViewController: UIViewController {
     private let devicePosition = AVCaptureDevice.Position.front
     private let videoQuality = AVCaptureSessionPresetHigh
     private var recorder: Recorder!
+    fileprivate var isErrorShown: Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -65,10 +66,17 @@ extension ViewController: RecorderDelegate {
     
     func recorderFaceDetectionError(with error: FaceDetectionError) {
         print("recorderFaceDetectionError: \(error)")
+        if !isErrorShown {
+            let alert = UIAlertController(title: "Error", message: "Face detection error: \(error)", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Retry",
+                                          style: .default,
+                                          handler: { [weak self] action in
+                                            self?.isErrorShown = false
+            }))
+            self.present(alert, animated: true, completion: nil)
+            isErrorShown = true
+        }
         
-        let alert = UIAlertController(title: "Error", message: "Face detection error: \(error)", preferredStyle: UIAlertControllerStyle.alert)
-        alert.addAction(UIAlertAction(title: "Retry", style: UIAlertActionStyle.default, handler: nil))
-        self.present(alert, animated: true, completion: nil)
     }
     
     
