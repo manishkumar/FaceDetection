@@ -138,7 +138,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 0800;
 				LastUpgradeCheck = 0800;
-				ORGANIZATIONNAME = "Pawel Chmiel";
+				ORGANIZATIONNAME = NewPage;
 				TargetAttributes = {
 					E5AB7BCD1D9E92DA0079BE5B = {
 						CreatedOnToolsVersion = 8.0;
